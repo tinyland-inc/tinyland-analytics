@@ -1,5 +1,5 @@
 /**
- * Configuration module for @tinyland-inc/tinyland-analytics.
+ * Configuration module for @tummycrypt/tinyland-analytics.
  *
  * Provides dependency injection for database access, environment flags,
  * and logging so the package has zero coupling to SvelteKit internals.

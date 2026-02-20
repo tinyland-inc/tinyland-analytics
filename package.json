@@ -1,5 +1,5 @@
 {
-  "name": "@tinyland-inc/tinyland-analytics",
+  "name": "@tummycrypt/tinyland-analytics",
   "version": "0.1.0",
   "description": "MDsveX-based analytics pipeline with real-time streaming",
   "type": "module",
@@ -36,7 +36,8 @@
   "license": "Zlib AND LicenseRef-Tinyland-Proprietary",
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/tinyland-inc/tinyland-analytics"
+    "url": "https://gitlab.com/tinyland/projects/tinyland.dev.git",
+    "directory": "packages/tinyland-analytics"
   },
   "dependencies": {},
   "devDependencies": {
@@ -45,6 +46,10 @@
     "vitest": "^4.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   }
 }
