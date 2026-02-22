@@ -1,6 +1,6 @@
 {
   "name": "@tummycrypt/tinyland-analytics",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MDsveX-based analytics pipeline with real-time streaming",
   "type": "module",
   "main": "./dist/index.js",
