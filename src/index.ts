@@ -1,4 +1,4 @@
-// Configuration & dependency injection
+
 export {
   configureAnalytics,
   getAnalyticsConfig,
@@ -11,7 +11,7 @@ export type {
   LoggerFn,
 } from './config.js';
 
-// MDsveX writer
+
 export {
   writeAnalyticsToMDsveX,
   readAnalyticsFromMDsveX,
@@ -23,7 +23,7 @@ export type {
   AnalyticsFrontmatter,
 } from './mdsvex-writer.js';
 
-// Query service
+
 export {
   queryAnalytics,
   getTrendingAnalytics,
@@ -35,7 +35,7 @@ export type {
   AnalyticsResult,
 } from './query-service.js';
 
-// Real-time writer
+
 export {
   startAnalyticsWriter,
   stopAnalyticsWriter,
@@ -47,7 +47,7 @@ export {
   clearAnalyticsBuffer,
 } from './real-time-writer.js';
 
-// Converter (DB -> MDsveX)
+
 export {
   convertPageViewsToMDsveX,
   convertEventAnalyticsToMDsveX,

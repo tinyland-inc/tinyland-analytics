@@ -26,9 +26,9 @@ interface UserActivity {
   metadata?: any;
 }
 
-/**
- * Obtain the configured database adapter, throwing if none was provided.
- */
+
+
+
 function requireDb() {
   const db = getAnalyticsConfig().db;
   if (!db) {
@@ -43,15 +43,15 @@ function getLogger() {
   return getAnalyticsConfig().logger;
 }
 
-/**
- * Convert page views from the database to MDsveX files.
- */
+
+
+
 export async function convertPageViewsToMDsveX(startDate: Date, endDate: Date) {
   const db = requireDb();
   const logger = getLogger();
 
   try {
-    // Query page views from database via adapter
+    
     const pageViews = await db.query<PageView>(
       `SELECT id, path, timestamp, user_agent, referrer, session_id
        FROM page_views
@@ -60,7 +60,7 @@ export async function convertPageViewsToMDsveX(startDate: Date, endDate: Date) {
       [startDate, endDate]
     );
 
-    // Group by month
+    
     const viewsByMonth = new Map<string, AnalyticsData[]>();
 
     for (const view of pageViews) {
@@ -72,7 +72,7 @@ export async function convertPageViewsToMDsveX(startDate: Date, endDate: Date) {
 
       viewsByMonth.get(monthKey)!.push({
         timestamp: view.timestamp,
-        value: 1, // Each page view counts as 1
+        value: 1, 
         metadata: {
           path: view.path,
           userAgent: view.user_agent,
@@ -82,13 +82,13 @@ export async function convertPageViewsToMDsveX(startDate: Date, endDate: Date) {
       });
     }
 
-    // Write each month to MDsveX
+    
     const results = [];
     for (const [monthKey, data] of viewsByMonth) {
       const [year, month] = monthKey.split('-').map(Number);
       const monthDate = new Date(year, month - 1);
 
-      // Calculate unique paths and sessions
+      
       const uniquePaths = new Set(data.map(d => d.metadata?.path)).size;
       const uniqueSessions = new Set(data.map(d => d.metadata?.sessionId).filter(Boolean)).size;
 
@@ -117,15 +117,15 @@ export async function convertPageViewsToMDsveX(startDate: Date, endDate: Date) {
   }
 }
 
-/**
- * Convert event analytics from the database to MDsveX files.
- */
+
+
+
 export async function convertEventAnalyticsToMDsveX(startDate: Date, endDate: Date) {
   const db = requireDb();
   const logger = getLogger();
 
   try {
-    // Query event analytics from database via adapter
+    
     const eventAnalytics = await db.query<EventAnalytic>(
       `SELECT e.id as event_id, e.type as event_type, e.start_time as timestamp,
               e.current_participants as participants, e.analytics_metadata as metadata
@@ -135,7 +135,7 @@ export async function convertEventAnalyticsToMDsveX(startDate: Date, endDate: Da
       [startDate, endDate]
     );
 
-    // Group by month
+    
     const eventsByMonth = new Map<string, AnalyticsData[]>();
 
     for (const event of eventAnalytics) {
@@ -156,13 +156,13 @@ export async function convertEventAnalyticsToMDsveX(startDate: Date, endDate: Da
       });
     }
 
-    // Write each month to MDsveX
+    
     const results = [];
     for (const [monthKey, data] of eventsByMonth) {
       const [year, month] = monthKey.split('-').map(Number);
       const monthDate = new Date(year, month - 1);
 
-      // Calculate event type distribution
+      
       const eventTypes = data.reduce((acc, d) => {
         const type = d.metadata?.eventType || 'unknown';
         acc[type] = (acc[type] || 0) + 1;
@@ -197,15 +197,15 @@ export async function convertEventAnalyticsToMDsveX(startDate: Date, endDate: Da
   }
 }
 
-/**
- * Convert user activity from the database to MDsveX files.
- */
+
+
+
 export async function convertUserActivityToMDsveX(startDate: Date, endDate: Date) {
   const db = requireDb();
   const logger = getLogger();
 
   try {
-    // Query user activity from database via adapter
+    
     const userActivities = await db.query<UserActivity>(
       `SELECT user_id, activity_type, timestamp, metadata
        FROM user_activities
@@ -214,7 +214,7 @@ export async function convertUserActivityToMDsveX(startDate: Date, endDate: Date
       [startDate, endDate]
     );
 
-    // Group by month
+    
     const activitiesByMonth = new Map<string, AnalyticsData[]>();
 
     for (const activity of userActivities) {
@@ -226,7 +226,7 @@ export async function convertUserActivityToMDsveX(startDate: Date, endDate: Date
 
       activitiesByMonth.get(monthKey)!.push({
         timestamp: activity.timestamp,
-        value: 1, // Each activity counts as 1
+        value: 1, 
         metadata: {
           userId: activity.user_id,
           activityType: activity.activity_type,
@@ -235,13 +235,13 @@ export async function convertUserActivityToMDsveX(startDate: Date, endDate: Date
       });
     }
 
-    // Write each month to MDsveX
+    
     const results = [];
     for (const [monthKey, data] of activitiesByMonth) {
       const [year, month] = monthKey.split('-').map(Number);
       const monthDate = new Date(year, month - 1);
 
-      // Calculate unique users and activity types
+      
       const uniqueUsers = new Set(data.map(d => d.metadata?.userId)).size;
       const activityTypes = data.reduce((acc, d) => {
         const type = d.metadata?.activityType || 'unknown';
@@ -274,9 +274,9 @@ export async function convertUserActivityToMDsveX(startDate: Date, endDate: Date
   }
 }
 
-/**
- * Convert all analytics for a given time period.
- */
+
+
+
 export async function convertAllAnalytics(startDate: Date, endDate: Date) {
   const logger = getLogger();
 
@@ -286,7 +286,7 @@ export async function convertAllAnalytics(startDate: Date, endDate: Date) {
     userActivity: [] as string[]
   };
 
-  // Convert page views
+  
   try {
     results.pageViews = await convertPageViewsToMDsveX(startDate, endDate);
   } catch (error) {
@@ -297,7 +297,7 @@ export async function convertAllAnalytics(startDate: Date, endDate: Date) {
     }
   }
 
-  // Convert event analytics
+  
   try {
     results.events = await convertEventAnalyticsToMDsveX(startDate, endDate);
   } catch (error) {
@@ -308,7 +308,7 @@ export async function convertAllAnalytics(startDate: Date, endDate: Date) {
     }
   }
 
-  // Convert user activity
+  
   try {
     results.userActivity = await convertUserActivityToMDsveX(startDate, endDate);
   } catch (error) {
@@ -322,7 +322,7 @@ export async function convertAllAnalytics(startDate: Date, endDate: Date) {
   return results;
 }
 
-// Helper function to get top paths
+
 function getTopPaths(data: AnalyticsData[], limit = 10): Array<{ path: string; count: number }> {
   const pathCounts = data.reduce((acc, d) => {
     const p = d.metadata?.path || 'unknown';

@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { getAnalyticsConfig } from './config.js';
 
-// Default base path; overridable via `configureAnalytics({ dataDir })`.
+
 const DEFAULT_ANALYTICS_BASE_PATH = 'src/content/analytics';
 
 function getBasePath(): string {
@@ -32,9 +32,9 @@ export interface AnalyticsFrontmatter {
   [key: string]: any;
 }
 
-/**
- * Write analytics data to an MDsveX file.
- */
+
+
+
 export async function writeAnalyticsToMDsveX(
   type: 'page-views' | 'events' | 'user-activity',
   date: Date,
@@ -45,7 +45,7 @@ export async function writeAnalyticsToMDsveX(
   const month = date.getMonth() + 1;
   const monthPadded = month.toString().padStart(2, '0');
 
-  // Create file path
+  
   const filePath = path.join(
     process.cwd(),
     getBasePath(),
@@ -54,17 +54,17 @@ export async function writeAnalyticsToMDsveX(
     `${monthPadded}.mdx`
   );
 
-  // Ensure directory exists
+  
   await fs.mkdir(path.dirname(filePath), { recursive: true });
 
-  // Calculate aggregate statistics
+  
   const totalCount = data.reduce((sum, item) => sum + item.value, 0);
   const uniqueDays = new Set(data.map(item =>
     item.timestamp.toISOString().split('T')[0]
   )).size;
   const averageDaily = uniqueDays > 0 ? Math.round(totalCount / uniqueDays) : 0;
 
-  // Find peak day
+  
   const dailyTotals = data.reduce((acc, item) => {
     const day = item.timestamp.toISOString().split('T')[0];
     acc[day] = (acc[day] || 0) + item.value;
@@ -74,7 +74,7 @@ export async function writeAnalyticsToMDsveX(
   const peakDay = Object.entries(dailyTotals)
     .sort(([, a], [, b]) => b - a)[0]?.[0] || '';
 
-  // Find peak hour
+  
   const hourlyTotals = data.reduce((acc, item) => {
     const hour = item.timestamp.getHours();
     acc[hour] = (acc[hour] || 0) + item.value;
@@ -84,7 +84,7 @@ export async function writeAnalyticsToMDsveX(
   const peakHour = Object.entries(hourlyTotals)
     .sort(([, a], [, b]) => b - a)[0]?.[0] || '0';
 
-  // Create frontmatter
+  
   const frontmatter: AnalyticsFrontmatter = {
     type,
     year,
@@ -98,10 +98,10 @@ export async function writeAnalyticsToMDsveX(
     ...additionalFrontmatter
   };
 
-  // Format data for content
+  
   const formattedData = formatAnalyticsData(data, type);
 
-  // Create MDsveX content
+  
   const content = `---
 ${Object.entries(frontmatter)
   .map(([key, value]) => `${key}: ${typeof value === 'string' ? `"${value}"` : value}`)
@@ -134,7 +134,7 @@ ${formattedData}
 </style>
 `;
 
-  // Write to file
+  
   await fs.writeFile(filePath, content, 'utf-8');
 
   if (isDev()) {
@@ -144,9 +144,9 @@ ${formattedData}
   return filePath;
 }
 
-/**
- * Read analytics from an MDsveX file.
- */
+
+
+
 export async function readAnalyticsFromMDsveX(
   type: 'page-views' | 'events' | 'user-activity',
   year: number,
@@ -164,7 +164,7 @@ export async function readAnalyticsFromMDsveX(
   try {
     const content = await fs.readFile(filePath, 'utf-8');
 
-    // Extract frontmatter
+    
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (!frontmatterMatch) return null;
 
@@ -175,7 +175,7 @@ export async function readAnalyticsFromMDsveX(
       const [key, ...valueParts] = line.split(':');
       if (key && valueParts.length) {
         const value = valueParts.join(':').trim();
-        // Parse value type
+        
         if (value.startsWith('"') && value.endsWith('"')) {
           frontmatter[key.trim()] = value.slice(1, -1);
         } else if (!isNaN(Number(value))) {
@@ -200,9 +200,9 @@ export async function readAnalyticsFromMDsveX(
   }
 }
 
-/**
- * List available analytics files.
- */
+
+
+
 export async function listAnalyticsFiles(
   type?: 'page-views' | 'events' | 'user-activity'
 ): Promise<Array<{ type: string; year: number; month: number; path: string }>> {
@@ -234,7 +234,7 @@ export async function listAnalyticsFiles(
         }
       }
     } catch (error) {
-      // Directory doesn't exist yet
+      
       if ((error as any).code !== 'ENOENT') {
         throw error;
       }
@@ -247,9 +247,9 @@ export async function listAnalyticsFiles(
   });
 }
 
-// Helper functions
+
 function formatAnalyticsData(data: AnalyticsData[], _type: string): string {
-  // Group by day
+  
   const byDay = data.reduce((acc, item) => {
     const day = item.timestamp.toISOString().split('T')[0];
     if (!acc[day]) acc[day] = [];
@@ -257,7 +257,7 @@ function formatAnalyticsData(data: AnalyticsData[], _type: string): string {
     return acc;
   }, {} as Record<string, AnalyticsData[]>);
 
-  // Format each day
+  
   return Object.entries(byDay)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([day, items]) => {

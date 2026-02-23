@@ -1,7 +1,7 @@
 import { writeAnalyticsToMDsveX, readAnalyticsFromMDsveX } from './mdsvex-writer.js';
 import { getAnalyticsConfig } from './config.js';
 
-// In-memory buffer for batching analytics writes
+
 const analyticsBuffer = {
   'page-views': [] as Array<{ timestamp: Date; value: number; metadata?: any }>,
   'events': [] as Array<{ timestamp: Date; value: number; metadata?: any }>,
@@ -12,17 +12,17 @@ function isDev(): boolean {
   return getAnalyticsConfig().isDev ?? false;
 }
 
-// Write interval (5 minutes in production, 1 minute in dev)
+
 function getWriteInterval(): number {
   return isDev() ? 60000 : 300000;
 }
 
-// Start periodic write process
+
 let writeInterval: NodeJS.Timeout | null = null;
 
-/**
- * Start the real-time analytics writer.
- */
+
+
+
 export function startAnalyticsWriter() {
   if (writeInterval) return;
 
@@ -35,9 +35,9 @@ export function startAnalyticsWriter() {
   }
 }
 
-/**
- * Stop the real-time analytics writer.
- */
+
+
+
 export function stopAnalyticsWriter() {
   if (writeInterval) {
     clearInterval(writeInterval);
@@ -45,9 +45,9 @@ export function stopAnalyticsWriter() {
   }
 }
 
-/**
- * Track a page view.
- */
+
+
+
 export async function trackPageView(
   path: string,
   sessionId?: string,
@@ -65,15 +65,15 @@ export async function trackPageView(
     }
   });
 
-  // In dev mode, write immediately for testing
+  
   if (isDev() && analyticsBuffer['page-views'].length >= 10) {
     await flushAnalyticsBuffer('page-views');
   }
 }
 
-/**
- * Track an event.
- */
+
+
+
 export async function trackEvent(
   eventId: string,
   eventType: string,
@@ -90,15 +90,15 @@ export async function trackEvent(
     }
   });
 
-  // In dev mode, write immediately for testing
+  
   if (isDev() && analyticsBuffer['events'].length >= 5) {
     await flushAnalyticsBuffer('events');
   }
 }
 
-/**
- * Track user activity.
- */
+
+
+
 export async function trackUserActivity(
   userId: string,
   activityType: string,
@@ -114,15 +114,15 @@ export async function trackUserActivity(
     }
   });
 
-  // In dev mode, write immediately for testing
+  
   if (isDev() && analyticsBuffer['user-activity'].length >= 10) {
     await flushAnalyticsBuffer('user-activity');
   }
 }
 
-/**
- * Flush analytics buffer to MDsveX files.
- */
+
+
+
 export async function flushAnalyticsBuffer(
   type?: 'page-views' | 'events' | 'user-activity'
 ) {
@@ -133,7 +133,7 @@ export async function flushAnalyticsBuffer(
     if (buffer.length === 0) continue;
 
     try {
-      // Group by month
+      
       const byMonth = new Map<string, typeof buffer>();
 
       for (const item of buffer) {
@@ -147,27 +147,27 @@ export async function flushAnalyticsBuffer(
         byMonth.get(key)!.push(item);
       }
 
-      // Write each month
+      
       for (const [monthKey, data] of byMonth) {
         const [year, month] = monthKey.split('-').map(Number);
 
-        // Read existing data for the month
+        
         const existing = await readAnalyticsFromMDsveX(t, year, month);
 
-        // Merge with existing data if present
+        
         if (existing) {
           await writeAnalyticsToMDsveX(
             t,
             new Date(year, month - 1),
             data,
             {
-              // Preserve existing frontmatter and update counts
+              
               totalCount: (existing.frontmatter.totalCount || 0) + data.reduce((sum, d) => sum + d.value, 0),
               lastUpdated: new Date().toISOString()
             }
           );
         } else {
-          // Write new file
+          
           await writeAnalyticsToMDsveX(
             t,
             new Date(year, month - 1),
@@ -176,7 +176,7 @@ export async function flushAnalyticsBuffer(
         }
       }
 
-      // Clear buffer
+      
       analyticsBuffer[t] = [];
 
       if (isDev()) {
@@ -193,9 +193,9 @@ export async function flushAnalyticsBuffer(
   }
 }
 
-/**
- * Get current buffer stats.
- */
+
+
+
 export function getBufferStats() {
   return {
     'page-views': analyticsBuffer['page-views'].length,
@@ -204,16 +204,16 @@ export function getBufferStats() {
   };
 }
 
-/**
- * Clear the analytics buffer without flushing (useful in tests).
- */
+
+
+
 export function clearAnalyticsBuffer() {
   analyticsBuffer['page-views'] = [];
   analyticsBuffer['events'] = [];
   analyticsBuffer['user-activity'] = [];
 }
 
-// Ensure buffer is flushed on process exit
+
 if (typeof process !== 'undefined') {
   process.on('beforeExit', async () => {
     await flushAnalyticsBuffer();

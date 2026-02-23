@@ -24,9 +24,9 @@ export interface AnalyticsResult {
   };
 }
 
-/**
- * Query analytics from MDsveX files.
- */
+
+
+
 export async function queryAnalytics(query: AnalyticsQuery): Promise<AnalyticsResult[]> {
   const results: AnalyticsResult[] = [];
   const types = query.type ? [query.type] : ['page-views', 'events', 'user-activity'] as const;
@@ -42,12 +42,12 @@ export async function queryAnalytics(query: AnalyticsQuery): Promise<AnalyticsRe
     let peakValue = 0;
     let peakDate = new Date();
 
-    // Read data from relevant files
+    
     for (const file of relevantFiles) {
       const analytics = await readAnalyticsFromMDsveX(type, file.year, file.month);
       if (!analytics) continue;
 
-      // Extract data points from frontmatter
+      
       const monthTotal = analytics.frontmatter.totalCount || 0;
       const monthDate = new Date(file.year, file.month - 1);
 
@@ -69,10 +69,10 @@ export async function queryAnalytics(query: AnalyticsQuery): Promise<AnalyticsRe
       }
     }
 
-    // Group data if requested
+    
     const groupedData = query.groupBy ? groupData(typeData, query.groupBy) : typeData;
 
-    // Calculate period
+    
     const sortedDates = groupedData.map(d => d.date).sort((a, b) => a.getTime() - b.getTime());
     const period = {
       start: sortedDates[0] || new Date(),
@@ -95,9 +95,9 @@ export async function queryAnalytics(query: AnalyticsQuery): Promise<AnalyticsRe
   return results;
 }
 
-/**
- * Get trending analytics.
- */
+
+
+
 export async function getTrendingAnalytics(
   type: 'page-views' | 'events' | 'user-activity',
   days: number = 30
@@ -111,14 +111,14 @@ export async function getTrendingAnalytics(
   const midDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
   const startDate = new Date(endDate.getTime() - 2 * days * 24 * 60 * 60 * 1000);
 
-  // Query current period
+  
   const currentResults = await queryAnalytics({
     type,
     startDate: midDate,
     endDate
   });
 
-  // Query previous period
+  
   const previousResults = await queryAnalytics({
     type,
     startDate,
@@ -128,12 +128,12 @@ export async function getTrendingAnalytics(
   const current = currentResults[0]?.summary || { total: 0, average: 0 };
   const previous = previousResults[0]?.summary || { total: 0, average: 0 };
 
-  // Calculate percentage change
+  
   const percentageChange = previous.total > 0
     ? ((current.total - previous.total) / previous.total) * 100
     : 0;
 
-  // Determine trend
+  
   let trend: 'up' | 'down' | 'stable' = 'stable';
   if (percentageChange > 5) trend = 'up';
   else if (percentageChange < -5) trend = 'down';
@@ -152,9 +152,9 @@ export async function getTrendingAnalytics(
   };
 }
 
-/**
- * Get top pages/events/activities.
- */
+
+
+
 export async function getTopItems(
   type: 'page-views' | 'events' | 'user-activity',
   limit: number = 10,
@@ -167,12 +167,12 @@ export async function getTopItems(
   const itemCounts = new Map<string, number>();
   let totalCount = 0;
 
-  // Aggregate counts from all files
+  
   for (const file of relevantFiles) {
     const analytics = await readAnalyticsFromMDsveX(type, file.year, file.month);
     if (!analytics) continue;
 
-    // Extract top items from frontmatter (if available)
+    
     if (type === 'page-views' && analytics.frontmatter.topPaths) {
       for (const p of analytics.frontmatter.topPaths) {
         itemCounts.set(p.path, (itemCounts.get(p.path) || 0) + p.count);
@@ -191,7 +191,7 @@ export async function getTopItems(
     }
   }
 
-  // Sort and limit
+  
   return Array.from(itemCounts.entries())
     .sort(([, a], [, b]) => b - a)
     .slice(0, limit)
@@ -202,7 +202,7 @@ export async function getTopItems(
     }));
 }
 
-// Helper functions
+
 
 function filterFilesByDateRange(
   files: Array<{ year: number; month: number }>,
