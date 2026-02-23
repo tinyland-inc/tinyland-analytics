@@ -5,11 +5,11 @@ import {
 } from '../src/config.js';
 import type { DatabaseAdapter } from '../src/config.js';
 
-// Shared stores that can be cleared between tests
+
 const __mockStore = new Map<string, string>();
 const __mockDirStore = new Set<string>();
 
-// Mock fs and path so no real filesystem access occurs
+
 vi.mock('fs', () => {
   return {
     promises: {
@@ -29,7 +29,7 @@ vi.mock('fs', () => {
         __mockDirStore.add(dirPath);
       }),
       readdir: vi.fn(async (dirPath: string) => {
-        // Return entries based on what has been written
+        
         const entries: string[] = [];
         for (const key of __mockStore.keys()) {
           if (key.startsWith(dirPath + '/')) {
@@ -48,7 +48,7 @@ vi.mock('fs', () => {
         return entries;
       }),
     },
-    // Also export the named `promises` for ESM destructuring
+    
     default: {
       promises: {
         writeFile: vi.fn(),
@@ -60,7 +60,7 @@ vi.mock('fs', () => {
   };
 });
 
-// Import after mocking
+
 import { promises as fs } from 'fs';
 import {
   writeAnalyticsToMDsveX,
@@ -90,9 +90,9 @@ import {
   convertAllAnalytics,
 } from '../src/converter.js';
 
-// ---------------------------------------------------------------------------
-// Test helpers
-// ---------------------------------------------------------------------------
+
+
+
 function makeData(
   dayOfMonth: number,
   value: number,
@@ -111,9 +111,9 @@ function createMockDb(rows: any[] = []): DatabaseAdapter {
   };
 }
 
-// ---------------------------------------------------------------------------
-// MDsveX Writer Tests
-// ---------------------------------------------------------------------------
+
+
+
 describe('MDsveX Writer', () => {
   beforeEach(() => {
     resetAnalyticsConfig();
@@ -149,7 +149,7 @@ describe('MDsveX Writer', () => {
     await writeAnalyticsToMDsveX('events', new Date(2026, 0), data);
     const writtenContent = (fs.writeFile as any).mock.calls[0][1] as string;
     expect(writtenContent).toContain('totalCount: 350');
-    expect(writtenContent).toContain('uniqueCount: 2'); // 2 unique days
+    expect(writtenContent).toContain('uniqueCount: 2'); 
   });
 
   it('should merge additional frontmatter', async () => {
@@ -218,11 +218,11 @@ describe('readAnalyticsFromMDsveX', () => {
   });
 
   it('should parse frontmatter from written file', async () => {
-    // Write first, then read back
+    
     const data: AnalyticsData[] = [makeData(1, 42)];
     await writeAnalyticsToMDsveX('page-views', new Date(2026, 0), data);
 
-    // Grab what was written and make readFile return it
+    
     const written = (fs.writeFile as any).mock.calls[0][1] as string;
     const writtenPath = (fs.writeFile as any).mock.calls[0][0] as string;
     (fs.readFile as any).mockResolvedValueOnce(written);
@@ -255,15 +255,15 @@ describe('listAnalyticsFiles', () => {
   });
 
   it('should return sorted files when directories exist', async () => {
-    // Mock directory structure: page-views/2026/01.mdx, page-views/2025/12.mdx
+    
     (fs.readdir as any)
-      .mockResolvedValueOnce(['2025', '2026'])  // years
-      .mockResolvedValueOnce(['12.mdx'])         // 2025 months
-      .mockResolvedValueOnce(['01.mdx']);         // 2026 months
+      .mockResolvedValueOnce(['2025', '2026'])  
+      .mockResolvedValueOnce(['12.mdx'])         
+      .mockResolvedValueOnce(['01.mdx']);         
 
     const files = await listAnalyticsFiles('page-views');
     expect(files).toHaveLength(2);
-    // Sorted descending by year then month
+    
     expect(files[0].year).toBe(2026);
     expect(files[0].month).toBe(1);
     expect(files[1].year).toBe(2025);
@@ -271,9 +271,9 @@ describe('listAnalyticsFiles', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Query Service Tests
-// ---------------------------------------------------------------------------
+
+
+
 describe('Query Service', () => {
   beforeEach(() => {
     resetAnalyticsConfig();
@@ -288,7 +288,7 @@ describe('Query Service', () => {
   });
 
   it('should query all types when type is not specified', async () => {
-    // All readdir calls return empty, so no results
+    
     const results = await queryAnalytics({});
     expect(results).toEqual([]);
   });
@@ -307,9 +307,9 @@ describe('Query Service', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Real-Time Writer Tests
-// ---------------------------------------------------------------------------
+
+
+
 describe('Real-Time Writer', () => {
   beforeEach(() => {
     resetAnalyticsConfig();
@@ -369,27 +369,27 @@ describe('Real-Time Writer', () => {
 
   it('should start and stop the analytics writer', () => {
     startAnalyticsWriter();
-    // Starting again should be a no-op
+    
     startAnalyticsWriter();
     stopAnalyticsWriter();
-    // Stopping again should be a no-op
+    
     stopAnalyticsWriter();
   });
 
   it('should use shorter interval in dev mode', () => {
     configureAnalytics({ isDev: true });
     startAnalyticsWriter();
-    // The writer should be running -- just verify no error
+    
     stopAnalyticsWriter();
   });
 
   it('should auto-flush page views in dev mode after threshold', async () => {
     configureAnalytics({ isDev: true });
-    // Track 10 page views to trigger auto-flush
+    
     for (let i = 0; i < 10; i++) {
       await trackPageView(`/page-${i}`);
     }
-    // Buffer should have been flushed (writeFile called)
+    
     expect(fs.writeFile).toHaveBeenCalled();
     expect(getBufferStats()['page-views']).toBe(0);
   });
@@ -413,9 +413,9 @@ describe('Real-Time Writer', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Converter Tests
-// ---------------------------------------------------------------------------
+
+
+
 describe('Converter', () => {
   beforeEach(() => {
     resetAnalyticsConfig();
@@ -457,7 +457,7 @@ describe('Converter', () => {
     );
 
     expect(mockDb.query).toHaveBeenCalledOnce();
-    expect(results).toHaveLength(1); // Both in January
+    expect(results).toHaveLength(1); 
     expect(fs.writeFile).toHaveBeenCalled();
   });
 
@@ -586,7 +586,7 @@ describe('Converter', () => {
       new Date(2026, 0, 31)
     );
 
-    // Page views and user activity should succeed, events should fail
+    
     expect(results.pageViews).toEqual([]);
     expect(results.events).toEqual([]);
     expect(results.userActivity).toEqual([]);
@@ -618,7 +618,7 @@ describe('Converter', () => {
       new Date(2026, 1, 28)
     );
 
-    // Should produce 2 files (one per month)
+    
     expect(results).toHaveLength(2);
     expect(fs.writeFile).toHaveBeenCalledTimes(2);
   });
